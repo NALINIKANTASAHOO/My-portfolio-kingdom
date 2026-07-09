@@ -1,7 +1,7 @@
 # 🚲 Nalini's Portfolio Town
 
-A low-poly 3D portfolio you can ride a horse around. Instead of scrolling
-through sections, you go through a small kingdom — each shop is a section
+A low-poly 3D portfolio you can ride a bike around. Instead of scrolling
+through sections, you pedal through a small town — each shop is a section
 of the portfolio (About, Skills, Projects, Certificates, Education, Contact).
 
 Built with plain **HTML / CSS / JavaScript** and **[Three.js](https://threejs.org/)**
