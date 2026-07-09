@@ -11,6 +11,23 @@ function pointNearCastle(x, z, pad = 0){
   return Math.hypot(x, z) < CASTLE_RADIUS + pad;
 }
 
+function pointBlockedByCastle(x, z){
+  const half = 11;
+  const gateGap = 4.6;
+  const wallBuffer = 1.25;
+
+  const insideCastleBounds = Math.abs(x) <= half + 0.6 && Math.abs(z) <= half + 0.6;
+  if(!insideCastleBounds) return false;
+
+  const inGateOpening = z >= half - 0.8 && z <= half + 0.4 && Math.abs(x) <= gateGap/2 + 0.2;
+  if(inGateOpening) return false;
+
+  const nearFrontWall = z >= half - wallBuffer && z <= half + 0.4 && Math.abs(x) > gateGap/2 + 0.2 && Math.abs(x) <= half + 0.6;
+  const nearSideWall = Math.abs(x) >= half - wallBuffer && Math.abs(x) <= half + 0.6 && Math.abs(z) <= half + 0.6;
+  const nearBackWall = z <= -half + wallBuffer && z >= -half - 0.6 && Math.abs(x) <= half + 0.6;
+  return nearFrontWall || nearSideWall || nearBackWall;
+}
+
 const castleStoneMat   = new THREE.MeshStandardMaterial({color:0xcdc3d6, flatShading:true, roughness:0.95});
 const castleStoneDark  = new THREE.MeshStandardMaterial({color:0x9a90a8, flatShading:true, roughness:0.95});
 const castleRoofMat    = new THREE.MeshStandardMaterial({color:0x5c3a68, flatShading:true, roughness:0.8});

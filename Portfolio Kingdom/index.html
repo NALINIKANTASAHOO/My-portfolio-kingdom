@@ -29,10 +29,20 @@
 </div>
 
 <div class="hud" id="instructions">
-  Ride with <b>W A S D</b> or <b>Arrow Keys</b>. Trot up to any shop and press <b>E</b> to look inside.
+  Ride with <b>W A S D</b> or <b>Arrow Keys</b>. Trot up to any shop and tap <b>View Details</b> to open it.
 </div>
 
-<div class="hud" id="prompt"><div class="bubble"><kbd>E</kbd><span id="prompt-text">Enter Shop</span></div></div>
+<div class="hud" id="prompt">
+  <div class="bubble">
+    <button id="prompt-action" class="prompt-action" type="button">View Details</button>
+    <span id="prompt-text">Enter Shop</span>
+  </div>
+</div>
+
+<div class="hud" id="action-bar">
+  <button id="details-action" class="action-btn" type="button">🧭 Details</button>
+  <button id="top-view-action" class="action-btn" type="button">🌐 Top View</button>
+</div>
 
 <button id="sound-toggle" aria-label="Play ambient sound">🔈</button>
 

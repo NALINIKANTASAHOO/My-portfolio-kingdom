@@ -9,14 +9,33 @@ const panelTitle = document.getElementById('panel-title');
 const panelBody = document.getElementById('panel-body');
 const promptEl = document.getElementById('prompt');
 const promptText = document.getElementById('prompt-text');
+const promptActionBtn = document.getElementById('prompt-action');
+const detailsActionBtn = document.getElementById('details-action');
+const topViewActionBtn = document.getElementById('top-view-action');
 const soundBtn = document.getElementById('sound-toggle');
 const welcomeEl = document.getElementById('welcome');
+
+let topViewEnabled = false;
 
 document.getElementById('panel-close').addEventListener('click', closePanel);
 overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closePanel(); });
 soundBtn.addEventListener('click', toggleAudio);
+promptActionBtn.addEventListener('click', openNearestShop);
+detailsActionBtn.addEventListener('click', openNearestShop);
+topViewActionBtn.addEventListener('click', toggleTopView);
 
 function closePanel(){ overlay.classList.remove('show'); controlsLocked = false; }
+
+function openNearestShop(){
+  if(activeShop) openShop(activeShop.data.key);
+}
+
+function toggleTopView(){
+  topViewEnabled = !topViewEnabled;
+  setCameraMode(topViewEnabled ? 'top' : 'follow');
+  topViewActionBtn.classList.toggle('is-active', topViewEnabled);
+  topViewActionBtn.textContent = topViewEnabled ? '🛡️ Follow View' : '🌐 Top View';
+}
 
 function openShop(key){
   controlsLocked = true;

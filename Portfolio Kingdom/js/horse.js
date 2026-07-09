@@ -206,10 +206,25 @@ document.querySelectorAll('#touch-pad button').forEach(btn=>{
 let activeShop = null;
 let gallopPhase = 0;
 const camTargetPos = new THREE.Vector3();
+const cameraLookTarget = new THREE.Vector3();
 let cameraYawOffset = 0;
 let cameraPitch = 0.48;
 let cameraDistance = 13.8;
 let cameraDragging = false;
+let cameraMode = 'follow';
+
+function setCameraMode(mode){
+  cameraMode = mode;
+  if(mode === 'top'){
+    cameraPitch = 0.12;
+    cameraDistance = 56;
+    cameraYawOffset = 0;
+  } else {
+    cameraPitch = 0.48;
+    cameraDistance = 13.8;
+    cameraYawOffset = 0;
+  }
+}
 let lastPointerX = 0;
 let lastPointerY = 0;
 
@@ -260,7 +275,10 @@ function updateHorse(delta){
 
     if(moveInput !== 0){
       const dir = new THREE.Vector3(Math.sin(horse.rotation.y),0,Math.cos(horse.rotation.y));
-      horse.position.addScaledVector(dir, moveInput*moveSpeed*delta);
+      const nextPos = horse.position.clone().addScaledVector(dir, moveInput*moveSpeed*delta);
+      if(!pointBlockedByCastle(nextPos.x, nextPos.z)){
+        horse.position.copy(nextPos);
+      }
       gallopPhase += Math.abs(moveInput)*moveSpeed*delta*2.6;
       notifyFirstMove();
     }
@@ -292,17 +310,24 @@ function updateHorse(delta){
   }
 
   // Drag with the mouse to orbit around the rider; scroll to pull back for
-  // a wider look at the island, sky, and ground.
+  // a wider look at the island, sky, and ground. A top-view mode gives
+  // mobile/desktop users a quick bird's-eye look at the whole kingdom.
   const cameraAngle = horse.rotation.y + Math.PI + cameraYawOffset;
   const targetY = horse.position.y + 1.8;
-  const horizontalDistance = Math.cos(cameraPitch) * cameraDistance;
-  camTargetPos.set(
-    horse.position.x + Math.sin(cameraAngle) * horizontalDistance,
-    targetY + Math.sin(cameraPitch) * cameraDistance,
-    horse.position.z + Math.cos(cameraAngle) * horizontalDistance
-  );
+  if(cameraMode === 'top'){
+    camTargetPos.set(horse.position.x, horse.position.y + 44, horse.position.z);
+    cameraLookTarget.set(horse.position.x, targetY, horse.position.z);
+  } else {
+    const horizontalDistance = Math.cos(cameraPitch) * cameraDistance;
+    camTargetPos.set(
+      horse.position.x + Math.sin(cameraAngle) * horizontalDistance,
+      targetY + Math.sin(cameraPitch) * cameraDistance,
+      horse.position.z + Math.cos(cameraAngle) * horizontalDistance
+    );
+    cameraLookTarget.set(horse.position.x, targetY, horse.position.z);
+  }
   camera.position.lerp(camTargetPos, 1-Math.pow(0.001,delta));
-  camera.lookAt(horse.position.x, targetY, horse.position.z);
+  camera.lookAt(cameraLookTarget);
 
   // nearest-shop proximity check
   let nearest = null, nearestD = 9.5;
