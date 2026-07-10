@@ -1,11 +1,25 @@
-# 🚲 Nalini's Portfolio Town
+# 🏰 Nalini's Portfolio Kingdom
 
-A low-poly 3D portfolio you can ride a bike around. Instead of scrolling
-through sections, you pedal through a small town — each shop is a section
-of the portfolio (About, Skills, Projects, Certificates, Education, Contact).
+A low-poly 3D portfolio you ride a horse around. Instead of scrolling
+through sections, you spawn inside a castle, meet the King, and set out
+on a small quest to explore the kingdom — each shop is a section of the
+portfolio (About, Skills, Projects, Certificates, Education, Contact).
 
 Built with plain **HTML / CSS / JavaScript** and **[Three.js](https://threejs.org/)**
 (loaded from a CDN). No build step, no framework, no npm install required.
+
+---
+
+## The story
+
+- You **spawn inside the castle courtyard**, face to face with **the King**.
+- The King explains the quest: ride out and visit all **six shops** around
+  the kingdom.
+- A **shopkeeper stands near every shop** and will nudge you toward their
+  door if you talk to them.
+- A **quest tracker** (top-right) checks off each shop as you visit it.
+- Once all six are visited, ride back to the King — his **treasure chest**
+  creaks open and he rewards you with every way to get in touch.
 
 ---
 
@@ -40,8 +54,8 @@ library and the Google Fonts are pulled from a CDN.
 |---|---|
 | Ride forward / back | `W` / `S` or `↑` / `↓` |
 | Turn left / right | `A` / `D` or `←` / `→` |
-| Enter the nearest shop | `E` |
-| Close a shop panel | `Esc` or the ✕ button |
+| Talk / enter the nearest shop or NPC | `E` |
+| Close a dialog panel | `Esc` or the ✕ button |
 | Toggle ambient sound | 🔈 button (bottom center) |
 
 On touch devices, an on-screen D-pad appears automatically in the bottom-right.
@@ -51,23 +65,28 @@ On touch devices, an on-screen D-pad appears automatically in the bottom-right.
 ## Project structure
 
 ```
-portfolio-town/
+portfolio-kingdom/
 ├── index.html          # page shell — loads the CSS and JS modules in order
 ├── README.md
 ├── css/
-│   └── style.css        # all HUD, panel, and loading-screen styling
+│   └── style.css        # all HUD, panel, quest-tracker, and loading-screen styling
 └── js/
-    ├── data.js           # ← EDIT THIS to update your content
-    ├── core.js           # THREE.Scene, camera, renderer, lighting
+    ├── data.js           # ← EDIT THIS to update your content and quest text
+    ├── core.js           # THREE.Scene, camera, renderer, lighting, tone mapping
     ├── sky.js             # gradient sky dome, sun, drifting clouds
-    ├── world.js           # ground terrain + the ring road
-    ├── shops.js            # the shop/cottage generator, built from data.js
-    ├── trees.js            # low-poly green pine trees, scattered procedurally
-    ├── decor.js            # lamp posts, benches, picket fences, market stalls
-    ├── audio.js            # tiny procedural ambient pad (Web Audio API)
-    ├── ui.js               # shop content panel + welcome bubble + HUD wiring
-    ├── bike.js             # rider character, controls, camera follow
-    └── main.js             # animation loop / startup
+    ├── birds.js           # flocks of low-poly birds wheeling overhead
+    ├── world.js           # ground terrain, ring road, shared collision/interact registries
+    ├── castle.js           # the King's keep, walls, gate torches, banners
+    ├── shops.js             # the shop/cottage generator, built from data.js
+    ├── npc.js                # the King, shopkeepers, and the treasure chest
+    ├── buildings.js           # extra village houses (non-interactive)
+    ├── trees.js                # low-poly pine trees, scattered procedurally
+    ├── decor.js                 # lamp posts, benches, fences, stalls, fireflies
+    ├── citizens.js                # wandering villagers (ambient only)
+    ├── audio.js                    # tiny procedural ambient pad (Web Audio API)
+    ├── ui.js                        # dialog panel, quest state, HUD wiring
+    ├── horse.js                      # rider character, controls, collision, camera
+    └── main.js                        # animation loop / startup
 ```
 
 The scripts are loaded as plain `<script src="...">` tags (not ES modules)
@@ -77,10 +96,23 @@ listed above, so that's the order each file's dependencies become available.
 
 ---
 
+## Collision & pathing
+
+`world.js` exposes a shared `blockers` registry (`addBlocker(x, z, radius)` /
+`pointBlockedByBlockers(x, z)`). Every shop, village house, castle tower,
+the King, the chest, and every shopkeeper register a blocker, so the rider
+now stops at walls and NPCs instead of riding straight through them —
+this replaces the old "shops don't block the bike" limitation. The King's
+courtyard, the gate, and the ring road stay open so there's always a clear
+route from the spawn point out to every shop and back.
+
+---
+
 ## Updating your content
 
-Everything shown inside the shops comes from **`js/data.js`** — you don't
-need to touch any Three.js code to update your portfolio:
+Everything shown inside the shops (and the King/shopkeeper dialog) comes
+from **`js/data.js`** — you don't need to touch any Three.js code to update
+your portfolio:
 
 - `PROFILE` — name, title, summary, education, achievements, contact links
 - `SKILLS` — grouped skill chips
@@ -90,10 +122,12 @@ need to touch any Three.js code to update your portfolio:
   issuer, date, description, credential URL)
 - `SHOPS` — the six buildings themselves: name, icon, colors, and where
   they sit around the ring road (`angle`, in degrees)
+- `KING_NAME`, `QUEST_TEXT`, `SHOPKEEPER_LINES` — everything the King and
+  the shopkeepers say
 
 To add a 7th shop, add an entry to `SHOPS` in `data.js` with a unique `key`,
-then add a matching `if(key==="yourKey"){ ... }` block inside `openShop()`
-in `js/ui.js` to render its panel content.
+a matching `if(key==="yourKey"){ ... }` block inside `openShop()` in
+`js/ui.js`, and a line in `SHOPKEEPER_LINES` for its shopkeeper.
 
 ---
 
@@ -111,19 +145,22 @@ is generated procedurally with the Web Audio API rather than an audio file.
 
 ## Known limitations
 
-- Shops don't physically block the bike — the "enter" trigger is
-  proximity-based (get close to a door), so you can ride straight through
-  a building.
+- Collision is circle-based (each building/NPC blocks a radius around its
+  center), not exact mesh collision — it stops the rider at the wall but
+  won't perfectly hug an irregular footprint.
 - The scene is built entirely from primitive geometry (boxes, cones,
   spheres) for a consistent low-poly look — there are no external 3D
-  model files to manage or load.
+  model files to manage or load, so it won't look like a AAA/anime MMO;
+  the graphics pass here focuses on lighting (filmic tone mapping), gate
+  torches, and firefly particles within that same low-poly style.
 - Tested in recent Chrome/Edge/Firefox. WebGL is required.
 
 ---
 
 ## Ideas for next steps
 
-- Swap the primitive bike/rider for a small GLTF model
-- Add simple collision so the bike stops at shop walls
-- Wire the `site` link in `data.js` into an actual multi-page build
+- Swap the primitive horse/rider for a small GLTF model
 - Add a minimap or a day/night toggle
+- Give the King a second quest once the first reward is claimed
+- Save quest progress to `localStorage` so it persists on reload
+
